@@ -11,7 +11,7 @@ PAY_AMT_COLS = [f"PAY_AMT{i}" for i in range(1, 7)]
 class DataPreprocessor:
     """Limpia los datos, construye variables de comportamiento y las escala para K-means."""
 
-    FEATURES = ["cupo_log", "utilizacion", "ratio_pago", "meses_con_retraso", "retraso_maximo"]
+    FEATURES = ["cupo_log", "utilizacion", "ratio_pago", "meses_con_retraso"]
 
     def __init__(self, percentil_recorte: float = 0.99):
         self.percentil_recorte = percentil_recorte
@@ -80,13 +80,21 @@ class DataPreprocessor:
             "meses_con_retraso = meses (de 6) con PAY_x > 0.",
             "retraso_maximo = mayor PAY_x (valores negativos = 0, sin retraso).",
         ]
+
+        corr = df["meses_con_retraso"].corr(df["retraso_maximo"])
+        self.operaciones.append(
+            f"retraso_maximo no entra al clustering: correlación {corr:.2f} con "
+            "meses_con_retraso (miden el mismo concepto y el retraso pesaría el doble). "
+            "Se conserva para describir los segmentos."
+        )
+
         return df
 
     # ---------- 3. Escalado ----------
     def scale(self, df: pd.DataFrame) -> np.ndarray:
         X = self.scaler.fit_transform(df[self.FEATURES])
         self.operaciones.append(
-            "StandardScaler sobre las 5 variables: K-means usa distancias y sin escalar "
+            "StandardScaler sobre las 4 variables: K-means usa distancias y sin escalar "
             "el cupo dominaría los grupos. Al no ser supervisado, no hay división "
             "train/test y el escalador se ajusta con todos los datos."
         )
