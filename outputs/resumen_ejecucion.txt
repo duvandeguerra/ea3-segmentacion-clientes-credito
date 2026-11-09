@@ -1,7 +1,7 @@
 ==============================================================================
 RESUMEN DE EJECUCIÓN - SEGMENTACIÓN DE CLIENTES CON K-MEANS
 ==============================================================================
-Fecha de ejecución: 2026-11-08 20:06:32
+Fecha de ejecución: 2026-11-08 20:41:23
 
 1. PREGUNTA DE NEGOCIO
 ------------------------------------------------------------------------------
@@ -68,12 +68,12 @@ Iteraciones hasta converger: 15
 
 7. PERFIL DE SEGMENTOS Y VALIDACIÓN EXTERNA
 ------------------------------------------------------------------------------
-                            nombre  clientes  porcentaje  cupo_promedio  utilizacion  ratio_pago  meses_con_retraso  retraso_maximo  edad_promedio  tasa_incumplimiento
-segmento                                                                                                                                                               
-0         Revolventes de cupo alto      8644      28.847     238337.307        0.337       0.123              0.258           0.336         35.456                0.125
-1         Bajo uso, pagan el total      9440      31.503     226207.627        0.035       0.869              0.341           0.395         36.449                0.172
-2         Revolventes de cupo bajo      8384      27.979      62126.908        0.682       0.099              0.420           0.595         34.631                0.213
-3              Morosos recurrentes      3497      11.670      86056.620        0.623       0.071              4.584           2.521         35.028                0.613
+                            nombre  clientes  porcentaje  cupo_promedio  utilizacion  ratio_pago  meses_con_retraso  retraso_maximo  edad_promedio  tasa_incumplimiento  incumplimientos  pct_del_total_incumplimientos
+segmento                                                                                                                                                                                                               
+0         Revolventes de cupo alto      8644      28.847     238337.307        0.337       0.123              0.258           0.336         35.456                0.125             1078                         16.259
+1         Bajo uso, pagan el total      9440      31.503     226207.627        0.035       0.869              0.341           0.395         36.449                0.172             1621                         24.449
+2         Revolventes de cupo bajo      8384      27.979      62126.908        0.682       0.099              0.420           0.595         34.631                0.213             1787                         26.953
+3              Morosos recurrentes      3497      11.670      86056.620        0.623       0.071              4.584           2.521         35.028                0.613             2144                         32.338
 
 Tasa de incumplimiento general: 22.1%.
 Rango por segmento: 12.5% (Revolventes de cupo alto) a 61.3% (Morosos recurrentes).

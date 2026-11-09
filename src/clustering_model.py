@@ -76,8 +76,13 @@ class ClusteringModel:
             retraso_maximo=("retraso_maximo", "mean"),
             edad_promedio=("AGE", "mean"),
             tasa_incumplimiento=("default", "mean"),
+            incumplimientos=("default", "sum"),
         )
         perfil.insert(1, "porcentaje", perfil["clientes"] / len(d) * 100)
+        perfil["pct_del_total_incumplimientos"] = (
+            perfil["incumplimientos"] / perfil["incumplimientos"].sum() * 100
+        )
+        
         return perfil
 
     @staticmethod
