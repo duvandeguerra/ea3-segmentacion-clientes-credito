@@ -1,7 +1,7 @@
 ==============================================================================
 RESUMEN DE EJECUCIÓN - SEGMENTACIÓN DE CLIENTES CON K-MEANS
 ==============================================================================
-Fecha de ejecución: 2026-11-08 20:41:23
+Fecha de ejecución: 2026-11-08 20:52:20
 
 1. PREGUNTA DE NEGOCIO
 ------------------------------------------------------------------------------
@@ -84,6 +84,6 @@ segmentos capturan diferencias reales de riesgo.
 8. GRÁFICAS GENERADAS
 ------------------------------------------------------------------------------
 - outputs/seleccion_k.png
-- outputs\segmentos_pca.png
-- outputs\perfil_segmentos.png
-- outputs\incumplimiento_segmentos.png
+- outputs/segmentos_pca.png
+- outputs/perfil_segmentos.png
+- outputs/incumplimiento_segmentos.png

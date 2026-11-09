@@ -13,7 +13,7 @@ def _guardar(fig, path: str) -> str:
     fig.tight_layout()
     fig.savefig(ruta, dpi=120)
     plt.close(fig)
-    return str(ruta)
+    return ruta.as_posix()
 
 
 def _etiquetas(nombres: dict[int, str]) -> list[str]:
