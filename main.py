@@ -1,5 +1,7 @@
 from src.data_loader import HFDatasetLoader
 from src.preprocessing import DataPreprocessor
+from src.clustering_model import ClusteringModel
+from src.visualization import plot_seleccion_k
 
 DATASET_ID = "scikit-learn/credit-card-clients"
 PREGUNTA_NEGOCIO = (
@@ -45,6 +47,20 @@ def main():
     for op in prep.operaciones:
         print(" -", op)
 
+    # ---------- SELECCIÓN DE k ----------
+    print("\n" + "=" * 60 + "\nSELECCIÓN DEL NÚMERO DE SEGMENTOS (k)\n" + "=" * 60)
+    modelo = ClusteringModel(k_min=2, k_max=8, random_state=42)
+    tabla_k = modelo.evaluate_k(X)
+    print(tabla_k.round(3).to_string(index=False))
+    print("\nGráfica:", plot_seleccion_k(tabla_k, "outputs/seleccion_k.png"))
+
+    # ---------- COMPARACIÓN k = 3 vs k = 4 ----------
+    idx_retraso = DataPreprocessor.FEATURES.index("meses_con_retraso")
+    for k in (3, 4):
+        labels = modelo.fit(X, k, orden_col=idx_retraso)
+        m = modelo.metrics
+        print(f"\n--- k = {k} | silueta {m['silueta']:.3f} | Davies-Bouldin {m['davies_bouldin']:.3f} ---")
+        print(ClusteringModel.profile(df_feat, labels).round(3).to_string())
 
 if __name__ == "__main__":
     main()
