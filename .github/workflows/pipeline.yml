@@ -1,0 +1,35 @@
+name: Pipeline ML - Segmentación de clientes
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  segmentar-clientes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Ejecutar flujo completo (carga, preprocesamiento, K-means, gráficas, resumen)
+        run: python main.py
+
+      - name: Publicar resumen y gráficas como artefacto descargable
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-segmentacion
+          path: |
+            outputs/resumen_ejecucion.txt
+            outputs/*.png
+          if-no-files-found: error
