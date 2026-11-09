@@ -1,7 +1,9 @@
 from src.data_loader import HFDatasetLoader
 from src.preprocessing import DataPreprocessor
 from src.clustering_model import ClusteringModel
-from src.visualization import plot_seleccion_k
+from src.visualization import (
+    plot_incumplimiento, plot_perfil_segmentos, plot_segmentos_pca, plot_seleccion_k,
+)
 
 DATASET_ID = "scikit-learn/credit-card-clients"
 PREGUNTA_NEGOCIO = (
@@ -61,6 +63,25 @@ def main():
         m = modelo.metrics
         print(f"\n--- k = {k} | silueta {m['silueta']:.3f} | Davies-Bouldin {m['davies_bouldin']:.3f} ---")
         print(ClusteringModel.profile(df_feat, labels).round(3).to_string())
+
+    # ---------- MODELO FINAL ----------
+    K_ELEGIDO = 4
+    print("\n" + "=" * 60 + f"\nMODELO FINAL: K-means con k = {K_ELEGIDO}\n" + "=" * 60)
+    labels = modelo.fit(X, K_ELEGIDO, orden_col=idx_retraso)
+    perfil = ClusteringModel.profile(df_feat, labels)
+    nombres = ClusteringModel.name_segments(perfil)
+    perfil.insert(0, "nombre", perfil.index.map(nombres))
+
+    print("Parámetros:", modelo.params)
+    print("Métricas:", {k: round(v, 3) for k, v in modelo.metrics.items()})
+    print("\nPerfil de segmentos:\n", perfil.round(3).to_string())
+
+    tasa_global = df_feat["default"].mean()
+    print("\nGráficas:")
+    print(" -", plot_segmentos_pca(X, labels, nombres, "outputs/segmentos_pca.png"))
+    print(" -", plot_perfil_segmentos(modelo.centros_, DataPreprocessor.FEATURES, nombres,
+                                      "outputs/perfil_segmentos.png"))
+    print(" -", plot_incumplimiento(perfil, nombres, tasa_global, "outputs/incumplimiento_segmentos.png"))
 
 if __name__ == "__main__":
     main()

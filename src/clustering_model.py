@@ -48,7 +48,10 @@ class ClusteringModel:
             orden = np.argsort(self.model.cluster_centers_[:, orden_col])
             rango = np.empty(k, dtype=int)
             rango[orden] = np.arange(k)
-            labels = rango[labels]
+            labels = rango[labels]                        
+            self.centros_ = self.model.cluster_centers_[orden]
+        else:
+            self.centros_ = self.model.cluster_centers_
 
         self.labels_ = labels
         self.metrics = {
@@ -76,6 +79,29 @@ class ClusteringModel:
         )
         perfil.insert(1, "porcentaje", perfil["clientes"] / len(d) * 100)
         return perfil
+
+    @staticmethod
+    def name_segments(perfil: pd.DataFrame) -> dict[int, str]:
+        """Asigna nombres de negocio con reglas sobre el perfil (no fijos a mano)."""
+        nombres = {}
+        restantes = perfil.copy()
+
+        moroso = restantes["meses_con_retraso"].idxmax()
+        nombres[moroso] = "Morosos recurrentes"
+        restantes = restantes.drop(moroso)
+
+        pagadores = restantes["ratio_pago"].idxmax()
+        nombres[pagadores] = "Bajo uso, pagan el total"
+        restantes = restantes.drop(pagadores)
+
+        if len(restantes) == 2:
+            alto = restantes["cupo_promedio"].idxmax()
+            nombres[alto] = "Revolventes de cupo alto"
+            nombres[restantes.drop(alto).index[0]] = "Revolventes de cupo bajo"
+        else:
+            for seg in restantes.index:
+                nombres[seg] = "Revolventes"
+        return dict(sorted(nombres.items()))
     
     @property
     def params(self) -> dict:
