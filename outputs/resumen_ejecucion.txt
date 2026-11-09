@@ -1,0 +1,89 @@
+==============================================================================
+RESUMEN DE EJECUCIÓN - SEGMENTACIÓN DE CLIENTES CON K-MEANS
+==============================================================================
+Fecha de ejecución: 2026-11-08 20:06:32
+
+1. PREGUNTA DE NEGOCIO
+------------------------------------------------------------------------------
+¿Qué perfiles de clientes existen según su comportamiento de uso y pago de la tarjeta, para que el área de riesgo crediticio defina políticas diferenciadas por segmento?
+Quién la necesita: área de riesgo crediticio y de producto de tarjetas.
+Decisión que apoya: qué política aplicar a cada segmento (fidelización, activación, alertas preventivas o cobranza).
+
+2. DATASET
+------------------------------------------------------------------------------
+Identificador: scikit-learn/credit-card-clients
+Enlace: https://huggingface.co/datasets/scikit-learn/credit-card-clients
+Split: train
+Contenido: 6 meses (abr-sep 2005) de cupo, facturas, pagos y retrasos de clientes de tarjetas de crédito en Taiwán.
+Dimensiones originales: 30000 filas x 25 columnas
+Dimensiones tras limpieza: 29965 filas x 23 columnas
+
+3. PREPROCESAMIENTO
+------------------------------------------------------------------------------
+- Se eliminó ID (identificador) y, sin él, se detectaron y eliminaron 35 filas duplicadas.
+- Se eliminó SEX por consideraciones éticas (no discriminación).
+- EDUCATION 0/5/6 -> 4 (otros) y MARRIAGE 0 -> 3 (otros): códigos no documentados.
+- Montos unificados a float.
+- Filas: 30000 -> 29965.
+- cupo_log = log(1 + LIMIT_BAL): reduce el sesgo del cupo (asimetría 0.99 -> -0.51).
+- utilizacion = factura promedio / cupo (facturas negativas = 0). Recortada en el percentil 99 (1.05): 300 clientes afectados; el máximo original era 5.36.
+- ratio_pago = total pagado / total facturado (6 meses), con tope 1.0. 936 clientes sin consumo reciben 1.0 (sin deuda pendiente).
+- meses_con_retraso = meses (de 6) con PAY_x > 0.
+- retraso_maximo = mayor PAY_x (valores negativos = 0, sin retraso).
+- retraso_maximo no entra al clustering: correlación 0.82 con meses_con_retraso (miden el mismo concepto y el retraso pesaría el doble). Se conserva para describir los segmentos.
+- StandardScaler sobre las 4 variables: K-means usa distancias y sin escalar el cupo dominaría los grupos. Al no ser supervisado, no hay división train/test y el escalador se ajusta con todos los datos.
+
+4. MODELO
+------------------------------------------------------------------------------
+Tipo de aprendizaje: NO SUPERVISADO. No existe una etiqueta de 'tipo de cliente';
+los segmentos se descubren a partir del comportamiento.
+Algoritmo: K-means (scikit-learn).
+Variables del clustering (4): cupo_log, utilizacion, ratio_pago, meses_con_retraso
+No usadas en el clustering: default (reservada para validación externa), AGE/EDUCATION/MARRIAGE (solo para describir), SEX (ética), retraso_maximo (redundante).
+Parámetros: {'algorithm': 'lloyd', 'copy_x': True, 'init': 'k-means++', 'max_iter': 300, 'n_clusters': 4, 'n_init': 10, 'random_state': 42, 'tol': 0.0001, 'verbose': 0}
+Configuración: k evaluado de 2 a 8, random_state=42, n_init=10, silueta calculada sobre una muestra de 10000 clientes.
+
+5. SELECCIÓN DEL NÚMERO DE SEGMENTOS
+------------------------------------------------------------------------------
+ k   inercia  silueta  davies_bouldin
+ 2 72282.284    0.371           1.102
+ 3 51258.495    0.400           1.004
+ 4 38703.157    0.373           1.014
+ 5 32674.849    0.358           0.993
+ 6 28552.267    0.357           0.979
+ 7 25698.465    0.352           0.980
+ 8 23455.097    0.347           1.097
+
+Mayor silueta: k = 3. k elegido: 4.
+Criterios: método del codo, silueta, Davies-Bouldin y validación externa con la
+tasa de incumplimiento por segmento (ver sección 7).
+
+6. MÉTRICAS DEL MODELO FINAL
+------------------------------------------------------------------------------
+k: 4
+Inercia: 38,703.2
+Coeficiente de silueta: 0.373
+Davies-Bouldin: 1.014
+Iteraciones hasta converger: 15
+
+7. PERFIL DE SEGMENTOS Y VALIDACIÓN EXTERNA
+------------------------------------------------------------------------------
+                            nombre  clientes  porcentaje  cupo_promedio  utilizacion  ratio_pago  meses_con_retraso  retraso_maximo  edad_promedio  tasa_incumplimiento
+segmento                                                                                                                                                               
+0         Revolventes de cupo alto      8644      28.847     238337.307        0.337       0.123              0.258           0.336         35.456                0.125
+1         Bajo uso, pagan el total      9440      31.503     226207.627        0.035       0.869              0.341           0.395         36.449                0.172
+2         Revolventes de cupo bajo      8384      27.979      62126.908        0.682       0.099              0.420           0.595         34.631                0.213
+3              Morosos recurrentes      3497      11.670      86056.620        0.623       0.071              4.584           2.521         35.028                0.613
+
+Tasa de incumplimiento general: 22.1%.
+Rango por segmento: 12.5% (Revolventes de cupo alto) a 61.3% (Morosos recurrentes).
+El segmento de mayor riesgo incumple 4.9 veces más que el de menor riesgo.
+Como 'default' no se usó para formar los grupos, esta diferencia indica que los
+segmentos capturan diferencias reales de riesgo.
+
+8. GRÁFICAS GENERADAS
+------------------------------------------------------------------------------
+- outputs/seleccion_k.png
+- outputs\segmentos_pca.png
+- outputs\perfil_segmentos.png
+- outputs\incumplimiento_segmentos.png

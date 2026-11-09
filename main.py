@@ -4,6 +4,7 @@ from src.clustering_model import ClusteringModel
 from src.visualization import (
     plot_incumplimiento, plot_perfil_segmentos, plot_segmentos_pca, plot_seleccion_k,
 )
+from src.report import ReportGenerator
 
 DATASET_ID = "scikit-learn/credit-card-clients"
 PREGUNTA_NEGOCIO = (
@@ -77,11 +78,31 @@ def main():
     print("\nPerfil de segmentos:\n", perfil.round(3).to_string())
 
     tasa_global = df_feat["default"].mean()
-    print("\nGráficas:")
-    print(" -", plot_segmentos_pca(X, labels, nombres, "outputs/segmentos_pca.png"))
-    print(" -", plot_perfil_segmentos(modelo.centros_, DataPreprocessor.FEATURES, nombres,
-                                      "outputs/perfil_segmentos.png"))
-    print(" -", plot_incumplimiento(perfil, nombres, tasa_global, "outputs/incumplimiento_segmentos.png"))
+    graficas = [
+        "outputs/seleccion_k.png",
+        plot_segmentos_pca(X, labels, nombres, "outputs/segmentos_pca.png"),
+        plot_perfil_segmentos(modelo.centros_, DataPreprocessor.FEATURES, nombres,
+                              "outputs/perfil_segmentos.png"),
+        plot_incumplimiento(perfil, nombres, tasa_global, "outputs/incumplimiento_segmentos.png"),
+    ]
+    print("\nGráficas:", *graficas, sep="\n - ")
+
+    # ---------- RESUMEN .TXT ----------
+    reporte = ReportGenerator(
+        pregunta=PREGUNTA_NEGOCIO,
+        dataset_id=DATASET_ID,
+        split="train",
+        forma_inicial=df.shape,
+        forma_final=df_limpio.shape,
+        operaciones=prep.operaciones,
+        features=DataPreprocessor.FEATURES,
+        modelo=modelo,
+        tabla_k=tabla_k,
+        perfil=perfil,
+        tasa_global=tasa_global,
+        graficas=graficas,
+    )
+    print("\nResumen guardado en:", reporte.save("outputs/resumen_ejecucion.txt"))
 
 if __name__ == "__main__":
     main()
